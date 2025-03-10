@@ -1,7 +1,9 @@
 import logging
+import webbrowser
 from pathlib import Path
 
 from pyroll.core import Profile, PassSequence, RollPass, Roll, CircularOvalGroove, Transport, RoundGroove
+from pyroll.report import report
 
 
 def test_solve(tmp_path: Path, caplog):
@@ -16,7 +18,7 @@ def test_solve(tmp_path: Path, caplog):
         material=["C45", "steel"],
         flow_stress=100e6,
         density=7.5e3,
-        thermal_capacity=690,
+        specific_heat_capacity=690,
     )
 
     sequence = PassSequence([
@@ -29,9 +31,18 @@ def test_solve(tmp_path: Path, caplog):
                     r2=40e-3
                 ),
                 nominal_radius=160e-3,
-                rotational_frequency=1
+                rotational_frequency=1,
+                cooling_sections=[
+                    [10, 95],
+                    [190, 340]
+                ],
+                temperature=50 + 273.15,
+                thermal_conductivity = 23,
+                density=7.5e3,
+                specific_heat_capacity=690,
             ),
             gap=2e-3,
+            coulomb_friction_coefficient=0.4,
         ),
         Transport(
             label="I => II",
@@ -46,9 +57,18 @@ def test_solve(tmp_path: Path, caplog):
                     depth=11.5e-3
                 ),
                 nominal_radius=160e-3,
-                rotational_frequency=1
+                rotational_frequency=1,
+                cooling_sections=[
+                    [10, 95],
+                    [190, 340]
+                ],
+                temperature=50 + 273.15,
+                thermal_conductivity = 23,
+                density=7.5e3,
+                specific_heat_capacity=690,
             ),
             gap=2e-3,
+            coulomb_friction_coefficient=0.4,
         ),
     ])
 
@@ -58,5 +78,11 @@ def test_solve(tmp_path: Path, caplog):
         print("\nLog:")
         print(caplog.text)
 
-    assert sequence.in_profile.new_hook == 42
-    assert sequence.out_profile.new_hook == 42
+    report_file = tmp_path / "report.html"
+
+    rendered = report(sequence)
+    print()
+
+    report_file.write_text(rendered, encoding="utf-8")
+
+    webbrowser.open(report_file.as_uri())

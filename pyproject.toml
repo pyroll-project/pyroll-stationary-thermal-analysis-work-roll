@@ -9,6 +9,8 @@ requires-python = ">=3.9, <4.0"
 
 dependencies = [
     "pyroll-core ~= 3.0",
+    "pyroll-report ~= 3.0",
+    "matplotlib",
     "mpmath"
 ]
 
