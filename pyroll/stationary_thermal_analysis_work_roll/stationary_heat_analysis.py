@@ -2,7 +2,7 @@ import numpy as np
 import mpmath as mp
 import pyroll.core as pr
 
-from scipy.interpolate import interp1d
+from scipy.integrate import trapezoid
 
 mp.dps = 50
 
@@ -20,18 +20,10 @@ class StationaryHeatAnalysis:
                                           (self.number_of_fourier_terms + 1) / 2,
                                           self.number_of_fourier_terms,
                                           endpoint=False)
-        self.radial_coordinates = mp.linspace(0.998 * self.roll.min_radius, self.roll.min_radius,
-                                              self.radial_discretization)
-        self.normed_radial_coordinates = [radial_coordinate / self.roll.min_radius for radial_coordinate in
-                                          self.radial_coordinates]
+        self.radial_coordinates = mp.linspace(0.7 * self.roll.min_radius, self.roll.min_radius, self.radial_discretization)
+        self.normed_radial_coordinates = [radial_coordinate / self.roll.min_radius for radial_coordinate in self.radial_coordinates]
         self.normed_cooling_array = mp.zeros(self.angular_discretization, 1)
         self.normed_heating_array = mp.zeros(self.angular_discretization, 1)
-
-
-    def interpolate_array(self, angle, array):
-        _angle = float(angle)
-        fun = interp1d(self.polar_angles, array)
-        return fun(_angle)
 
     def create_diagonal_matrix(self):
         fourier_coefficients = mp.zeros(self.number_of_fourier_terms, 1)
@@ -58,30 +50,33 @@ class StationaryHeatAnalysis:
         return diag_matrix
 
     def create_hermitian_matrix_from_cooling_array(self, cooling_fourier_coefficients):
-            middle_index = self.number_of_fourier_terms // 2
-            hermitian_matrix = mp.matrix(self.number_of_fourier_terms , self.number_of_fourier_terms )
+        middle_index = self.number_of_fourier_terms // 2
+        hermitian_matrix = mp.matrix(self.number_of_fourier_terms, self.number_of_fourier_terms)
 
-            for i in range(self.number_of_fourier_terms ):
-                for j in range(self.number_of_fourier_terms ):
-                    index = middle_index + (j - i)
-                    if 0 <= index < self.number_of_fourier_terms :
-                        hermitian_matrix[i, j] = cooling_fourier_coefficients[index]
-                    else:
-                        hermitian_matrix[i, j] = mp.conj(hermitian_matrix[j, i])
+        for i in range(self.number_of_fourier_terms):
+            for j in range(self.number_of_fourier_terms):
+                index = middle_index + (j - i)
+                if 0 <= index < self.number_of_fourier_terms:
+                    hermitian_matrix[i, j] = cooling_fourier_coefficients[index]
+                else:
+                    hermitian_matrix[i, j] = mp.conj(hermitian_matrix[j, i])
 
-            return hermitian_matrix
+        return hermitian_matrix
 
     def complex_fourier_analysis(self, array):
         fourier_coefficients = mp.zeros(self.number_of_fourier_terms, 1)
 
+        integrand = mp.zeros(self.number_of_fourier_terms, self.angular_discretization)
+
+        for i, order in enumerate(self.fourier_orders):
+            for j, angle in enumerate(self.polar_angles):
+                integrand[i, j] = array[j] * mp.exp(-mp.j * order * angle)
+
+        integrand_array = np.array(integrand.tolist(), dtype=complex)
+
         for i, order in enumerate(self.fourier_orders):
             fourier_coefficients[i, 0] = (
-                    1
-                    / (2 * mp.pi)
-                    * mp.quad(
-                lambda angle: self.interpolate_array(angle, array) * mp.exp(-mp.j * order * angle),
-                [0, 2 * mp.pi],
-            )
+                    1 / (2 * mp.pi) * trapezoid(y=integrand_array[i], x=self.polar_angles, dx=1)
             )
         return fourier_coefficients
 
@@ -116,10 +111,11 @@ class StationaryHeatAnalysis:
                 self.normed_cooling_array[i] = self.roll.free_surface_heat_transfer_coefficient
 
     def set_normed_heating_values(self):
-        bite_angle = int(np.ceil(np.abs(self.roll.entry_angle)))
+        bite_angle = int(np.ceil(np.abs(mp.degrees(self.roll.entry_angle))))
         lower_boundary = (self.angular_discretization - bite_angle)
 
-        self.normed_heating_array[lower_boundary: self.angular_discretization] = self.roll.min_radius * self.roll_pass.heat_flux / (
+        self.normed_heating_array[
+        lower_boundary: self.angular_discretization] = self.roll.min_radius * self.roll_pass.heat_flux / (
                 self.roll.thermal_conductivity * self.reference_temperature)
 
     def solve(self):

@@ -7,7 +7,7 @@ from pyroll.report import report
 
 
 def test_solve(tmp_path: Path, caplog):
-    caplog.set_level(logging.DEBUG, logger="pyroll")
+    caplog.set_level(logging.INFO, logger="pyroll")
 
     import pyroll.stationary_thermal_analysis_work_roll
 
@@ -33,13 +33,12 @@ def test_solve(tmp_path: Path, caplog):
                 nominal_radius=160e-3,
                 rotational_frequency=1,
                 cooling_sections=[
-                    [10, 95],
-                    [190, 340]
+                    [25, 240]
                 ],
                 temperature=50 + 273.15,
-                thermal_conductivity = 23,
-                density=7.5e3,
-                specific_heat_capacity=690,
+                thermal_conductivity = 110,
+                density=13.5e3,
+                specific_heat_capacity=200,
             ),
             gap=2e-3,
             coulomb_friction_coefficient=0.4,
@@ -59,10 +58,9 @@ def test_solve(tmp_path: Path, caplog):
                 nominal_radius=160e-3,
                 rotational_frequency=1,
                 cooling_sections=[
-                    [10, 95],
-                    [190, 340]
+                    [25, 240]
                 ],
-                temperature=50 + 273.15,
+                temperature=50+ 273.15,
                 thermal_conductivity = 23,
                 density=7.5e3,
                 specific_heat_capacity=690,

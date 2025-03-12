@@ -34,7 +34,7 @@ def default_water(self: Roll):
     return 15000
 
 @Roll.heat_transfer_coefficient
-def default_water(self: Roll):
+def default_steel_steel(self: Roll):
     return 6000
 
 @Roll.free_surface_heat_transfer_coefficient
@@ -50,3 +50,4 @@ def temperature_field(self: Roll):
     heat_analysis = StationaryHeatAnalysis(self)
     temperature_field = heat_analysis.solve()
     return temperature_field
+
