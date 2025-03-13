@@ -115,7 +115,7 @@ class StationaryHeatAnalysis:
         lower_boundary = (self.angular_discretization - bite_angle)
 
         self.normed_heating_array[
-        lower_boundary: self.angular_discretization] = self.roll.min_radius * self.roll_pass.heat_flux / (
+        lower_boundary: self.angular_discretization] = self.roll.min_radius * self.roll_pass.average_heat_flux / (
                 self.roll.thermal_conductivity * self.reference_temperature)
 
     def solve(self):
