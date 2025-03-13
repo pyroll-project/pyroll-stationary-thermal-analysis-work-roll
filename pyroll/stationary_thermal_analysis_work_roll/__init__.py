@@ -1,6 +1,7 @@
 from . import roll
 from . import roll_pass
 
+VERSION ="3.0.0"
 
 import importlib.util
 
