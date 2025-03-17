@@ -25,6 +25,7 @@ def test_solve(tmp_path: Path, caplog):
         RollPass(
             label="Oval I",
             roll=Roll(
+                material="CR75",
                 groove=CircularOvalGroove(
                     depth=8e-3,
                     r1=6e-3,
@@ -36,7 +37,7 @@ def test_solve(tmp_path: Path, caplog):
                     [25, 240]
                 ],
                 temperature=50 + 273.15,
-                thermal_conductivity = 110,
+                thermal_conductivity=110,
                 density=13.5e3,
                 specific_heat_capacity=200,
             ),
@@ -50,6 +51,7 @@ def test_solve(tmp_path: Path, caplog):
         RollPass(
             label="Round II",
             roll=Roll(
+                material="SS2242",
                 groove=RoundGroove(
                     r1=1e-3,
                     r2=12.5e-3,
@@ -60,10 +62,10 @@ def test_solve(tmp_path: Path, caplog):
                 cooling_sections=[
                     [25, 240]
                 ],
-                temperature=50+ 273.15,
-                thermal_conductivity = 23,
+                temperature=50 + 273.15,
+                thermal_conductivity=23,
                 density=7.5e3,
-                specific_heat_capacity=690,
+                specific_heat_capacity=670,
             ),
             gap=2e-3,
             coulomb_friction_coefficient=0.4,

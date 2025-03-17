@@ -20,7 +20,7 @@ class StationaryHeatAnalysis:
                                           (self.number_of_fourier_terms + 1) / 2,
                                           self.number_of_fourier_terms,
                                           endpoint=False)
-        self.radial_coordinates = mp.linspace(0.7 * self.roll.min_radius, self.roll.min_radius, self.radial_discretization)
+        self.radial_coordinates = mp.linspace(0.985 * self.roll.min_radius, self.roll.min_radius, self.radial_discretization)
         self.normed_radial_coordinates = [radial_coordinate / self.roll.min_radius for radial_coordinate in self.radial_coordinates]
         self.normed_cooling_array = mp.zeros(self.angular_discretization, 1)
         self.normed_heating_array = mp.zeros(self.angular_discretization, 1)
@@ -32,7 +32,7 @@ class StationaryHeatAnalysis:
 
         for i, fourier_order in enumerate(self.fourier_orders):
             bessel_function_argument_at_surface = (
-                    mp.sqrt(-mp.j * fourier_order) * 1 / reciprocate_peclet
+                    mp.sqrt(-mp.j * fourier_order) * 1 / mp.sqrt(reciprocate_peclet)
             )
 
             numerator = mp.besselj(
@@ -84,13 +84,13 @@ class StationaryHeatAnalysis:
         coefficients = mp.matrix(self.radial_discretization, self.number_of_fourier_terms)
         reciprocate_peclet = 1 / self.roll.peclet_number
 
-        for i, radius in enumerate(self.radial_coordinates):
+        for i, radius in enumerate(self.normed_radial_coordinates):
             for j, order in enumerate(self.fourier_orders):
                 bessel_function_argument_at_radius = (
-                        mp.sqrt(-mp.j * order) * radius / reciprocate_peclet
+                        mp.sqrt(-mp.j * order) * radius / mp.sqrt(reciprocate_peclet)
                 )
                 bessel_function_argument_at_surface = (
-                        mp.sqrt(-mp.j * order) * 1 / reciprocate_peclet
+                        mp.sqrt(-mp.j * order) * 1 / mp.sqrt(reciprocate_peclet)
                 )
 
                 numerator = mp.besselj(order, bessel_function_argument_at_radius)
@@ -108,7 +108,7 @@ class StationaryHeatAnalysis:
 
         for i in range(self.normed_cooling_array.rows):
             if self.normed_cooling_array[i] == 0:
-                self.normed_cooling_array[i] = self.roll.free_surface_heat_transfer_coefficient
+                self.normed_cooling_array[i] = self.roll.min_radius * self.roll.free_surface_heat_transfer_coefficient / self.roll.thermal_conductivity
 
     def set_normed_heating_values(self):
         bite_angle = int(np.ceil(np.abs(mp.degrees(self.roll.entry_angle))))

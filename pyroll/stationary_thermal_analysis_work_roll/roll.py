@@ -27,7 +27,7 @@ Roll.temperature_field = Hook[float]()
 
 @Roll.peclet_number
 def peclet_number(self: Roll):
-    return (self.rotational_frequency * self.min_radius ** 2) / self.heat_transfer_coefficient
+    return (self.surface_velocity * self.min_radius ** 2) / self.thermal_diffusivity
 
 @Roll.coolant_heat_transfer_coefficient
 def default_water(self: Roll):
@@ -51,3 +51,4 @@ def temperature_field(self: Roll):
     temperature_field = heat_analysis.solve()
     return temperature_field
 
+root_hooks.append(Roll.peclet_number)
