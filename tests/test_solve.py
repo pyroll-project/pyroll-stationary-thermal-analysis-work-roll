@@ -2,7 +2,7 @@ import logging
 import webbrowser
 from pathlib import Path
 
-from pyroll.core import Profile, PassSequence, RollPass, Roll, CircularOvalGroove, Transport, RoundGroove
+from pyroll.core import Profile, PassSequence, RollPass, Roll, FalseRoundGroove, CircularOvalGroove
 from pyroll.report import report
 
 
@@ -11,9 +11,15 @@ def test_solve(tmp_path: Path, caplog):
 
     import pyroll.stationary_thermal_analysis_work_roll
 
-    in_profile = Profile.round(
-        diameter=30e-3,
-        temperature=1200 + 273.15,
+    in_profile = Profile.from_groove(
+        groove=CircularOvalGroove(
+            depth=3.5e-3,
+            r1=1e-3,
+            r2=15.5e-3
+        ),
+        gap=1.6e-3,
+        filling=0.9,
+        temperature=1100 + 273.15,
         strain=0,
         material=["C45", "steel"],
         flow_stress=100e6,
@@ -23,16 +29,15 @@ def test_solve(tmp_path: Path, caplog):
 
     sequence = PassSequence([
         RollPass(
-            label="Oval I",
+            label="Stand 24",
+            orientation="v",
             roll=Roll(
-                material="CR75",
-                groove=CircularOvalGroove(
-                    depth=8e-3,
-                    r1=6e-3,
-                    r2=40e-3
+                groove=FalseRoundGroove(
+                    depth=4.6e-3,
+                    r1=0.2e-3,
+                    r2=5.55e-3,
+                    flank_angle=70
                 ),
-                nominal_radius=160e-3,
-                rotational_frequency=1,
                 cooling_sections=[
                     [25, 240]
                 ],
@@ -40,36 +45,13 @@ def test_solve(tmp_path: Path, caplog):
                 thermal_conductivity=110,
                 density=13.5e3,
                 specific_heat_capacity=200,
+                nominal_radius=72.75e-3,
             ),
-            gap=2e-3,
+            velocity=65.4,
+            gap=1.7e-3,
             coulomb_friction_coefficient=0.4,
-        ),
-        Transport(
-            label="I => II",
-            duration=1
-        ),
-        RollPass(
-            label="Round II",
-            roll=Roll(
-                material="SS2242",
-                groove=RoundGroove(
-                    r1=1e-3,
-                    r2=12.5e-3,
-                    depth=11.5e-3
-                ),
-                nominal_radius=160e-3,
-                rotational_frequency=1,
-                cooling_sections=[
-                    [25, 240]
-                ],
-                temperature=50 + 273.15,
-                thermal_conductivity=23,
-                density=7.5e3,
-                specific_heat_capacity=670,
-            ),
-            gap=2e-3,
-            coulomb_friction_coefficient=0.4,
-        ),
+        )
+
     ])
 
     try:
