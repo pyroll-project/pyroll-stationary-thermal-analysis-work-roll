@@ -55,6 +55,7 @@ def roll_temperature_field_plot(unit: Unit):
             temp_plot = ax.plot(angles, temp, label=f"Radius:{radius * unit.roll.min_radius}")
             plots.append(temp_plot)
 
+        ax.set_title("Temperature Field of Roll")
         axl.axis("off")
         axl.legend(handles=plots[0] + plots[1] + cooling_1 + heating_1, ncols=2, loc="lower center")
 
